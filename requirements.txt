@@ -7,3 +7,5 @@ numpy
 plotly
 torchvision
 torch
+io
+base64

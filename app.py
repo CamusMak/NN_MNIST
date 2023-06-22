@@ -5,6 +5,8 @@ import plotly.express as px
 import pandas as pd
 from torchvision import transforms
 import torch
+import io
+import base64
 from CustomNN import ImageNN, predicted_digit,open_image
 
 # load the model
@@ -12,14 +14,18 @@ model = ImageNN()
 model.state_dict = torch.load("model_1.pth")
 
 # image transformation
-
+transform = transforms.Compose([
+    transforms.Grayscale(),
+    transforms.Resize((28, 28)),
+    transforms.ToTensor()
+])
 
 app = Dash(__name__)
 
 server = app.server
 app.layout = html.Div(
     [
-        html.H1("Recognize digits based on handwritten images"),
+        html.H1("Handwritten digit recognition"),
 
         dcc.Upload(
             id='upload-image',
@@ -49,33 +55,61 @@ app.layout = html.Div(
 
 # open image with Image module from PIL
 
-
-
 @app.callback(
     Output('show-image', 'children'),
-    Input('upload-image', 'filename')
+    Input('upload-image', 'contents'),
+    prevent_initial_call=True
 )
-def show_image(filename):
-    if filename is not None:
-        image = open_image(filename)
-        if isinstance(image, np.ndarray):
+def process_uploaded_image(contents):
 
-            figure = px.imshow(image, color_continuous_scale='gray')
-            figure.update_layout(coloraxis_showscale=False)
-            figure.update_xaxes(showticklabels=False)
-            figure.update_yaxes(showticklabels=False)
+    try:
+        image = Image.open(io.BytesIO(base64.b64decode(contents.split(',')[1])))
+    except UnidentifiedImageError:
+        return html.Div(
+            [
+                "Please load a valid image file!!"
+            ]
+        )
+    image_tensor = transform(image).unsqueeze(0)
 
-            return html.Div(
-                [
-                    dcc.Graph(figure=figure),
+    # Predict the digit
+    with torch.no_grad():
+        output = model(image_tensor)
+        predicted_class = torch.argmax(output).item()
 
-                    html.H1(f"Predicted digit: {predicted_digit(model=model, image=Image.open(filename))}")
-
-                ]
-            )
-        else:
-            return image
-
+    return html.Div(
+        [
+            html.H2(f"Predicted digit: {predicted_class}"),
+            html.Img(src=contents, style={'width': '400px', 'height': '400px'})
+        ]
+    )
+#
+#
+# @app.callback(
+#     Output('show-image', 'children'),
+#     Input('upload-image', 'filename')
+# )
+# def show_image(filename):
+#     if filename is not None:
+#         image = open_image(filename)
+#         if isinstance(image, np.ndarray):
+#
+#             figure = px.imshow(image, color_continuous_scale='gray')
+#             figure.update_layout(coloraxis_showscale=False)
+#             figure.update_xaxes(showticklabels=False)
+#             figure.update_yaxes(showticklabels=False)
+#
+#             return html.Div(
+#                 [
+#                     dcc.Graph(figure=figure),
+#
+#                     html.H1(f"Predicted digit: {predicted_digit(model=model, image=Image.open(filename))}")
+#
+#                 ]
+#             )
+#         else:
+#             return image
+#
 
 if __name__ == "__main__":
     app.run_server(debug=True)
