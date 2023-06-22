@@ -69,47 +69,24 @@ def process_uploaded_image(contents):
                 "Please load a valid image file!!"
             ]
         )
-    # image_tensor = transform(image).unsqueeze(0)
-    #
-    # # Predict the digit
-    # with torch.no_grad():
-    #     output = model(image_tensor)
-    #     predicted_class = torch.argmax(output).item()
+    image_tensor = transform(image).unsqueeze(0)
+
+    predicted_class = None
+    # Predict the digit
+    with torch.no_grad():
+        output = model(image_tensor)
+        predicted_class = torch.argmax(output).item()
+        print(predicted_class)
 
     return html.Div(
         [
-            html.H2(f"Predicted digit: {predicted_digit(model,image)}"),
+            # html.H2(f"Predicted digit: {predicted_digit(model=model,image=image)}"),
+            html.H2(f"Predicted digit: {predicted_class}"),
             html.Img(src=contents, style={'width': '400px', 'height': '400px'})
         ]
     )
 
 
-
-
-@app.callback(
-    Output('show-image', 'children'),
-    Input('upload-image', 'filename')
-)
-def show_image(filename):
-    if filename is not None:
-        image = open_image(filename)
-        if isinstance(image, np.ndarray):
-
-            figure = px.imshow(image, color_continuous_scale='gray')
-            figure.update_layout(coloraxis_showscale=False)
-            figure.update_xaxes(showticklabels=False)
-            figure.update_yaxes(showticklabels=False)
-
-            return html.Div(
-                [
-                    dcc.Graph(figure=figure),
-
-                    html.H1(f"Predicted digit: {predicted_digit(model=model, image=Image.open(filename))}")
-
-                ]
-            )
-        else:
-            return image
 
 
 if __name__ == "__main__":
