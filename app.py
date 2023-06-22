@@ -20,6 +20,7 @@ transform = transforms.Compose([
 
 app = Dash(__name__)
 
+server = app.server
 app.layout = html.Div(
     [
         html.H1("Recognize digits based on handwritten images"),
