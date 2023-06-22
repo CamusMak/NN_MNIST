@@ -7,7 +7,7 @@ from torchvision import transforms
 import torch
 import io
 import base64
-from CustomNN import ImageNN, predicted_digit,open_image
+from CustomNN import ImageNN, predicted_digit, open_image
 
 # load the model
 model = ImageNN()
@@ -61,7 +61,6 @@ app.layout = html.Div(
     prevent_initial_call=True
 )
 def process_uploaded_image(contents):
-
     try:
         image = Image.open(io.BytesIO(base64.b64decode(contents.split(',')[1])))
     except UnidentifiedImageError:
@@ -70,46 +69,48 @@ def process_uploaded_image(contents):
                 "Please load a valid image file!!"
             ]
         )
-    image_tensor = transform(image).unsqueeze(0)
-
-    # Predict the digit
-    with torch.no_grad():
-        output = model(image_tensor)
-        predicted_class = torch.argmax(output).item()
+    # image_tensor = transform(image).unsqueeze(0)
+    #
+    # # Predict the digit
+    # with torch.no_grad():
+    #     output = model(image_tensor)
+    #     predicted_class = torch.argmax(output).item()
 
     return html.Div(
         [
-            html.H2(f"Predicted digit: {predicted_class}"),
+            html.H2(f"Predicted digit: {predicted_digit(model,image)}"),
             html.Img(src=contents, style={'width': '400px', 'height': '400px'})
         ]
     )
-#
-#
-# @app.callback(
-#     Output('show-image', 'children'),
-#     Input('upload-image', 'filename')
-# )
-# def show_image(filename):
-#     if filename is not None:
-#         image = open_image(filename)
-#         if isinstance(image, np.ndarray):
-#
-#             figure = px.imshow(image, color_continuous_scale='gray')
-#             figure.update_layout(coloraxis_showscale=False)
-#             figure.update_xaxes(showticklabels=False)
-#             figure.update_yaxes(showticklabels=False)
-#
-#             return html.Div(
-#                 [
-#                     dcc.Graph(figure=figure),
-#
-#                     html.H1(f"Predicted digit: {predicted_digit(model=model, image=Image.open(filename))}")
-#
-#                 ]
-#             )
-#         else:
-#             return image
-#
+
+
+
+
+@app.callback(
+    Output('show-image', 'children'),
+    Input('upload-image', 'filename')
+)
+def show_image(filename):
+    if filename is not None:
+        image = open_image(filename)
+        if isinstance(image, np.ndarray):
+
+            figure = px.imshow(image, color_continuous_scale='gray')
+            figure.update_layout(coloraxis_showscale=False)
+            figure.update_xaxes(showticklabels=False)
+            figure.update_yaxes(showticklabels=False)
+
+            return html.Div(
+                [
+                    dcc.Graph(figure=figure),
+
+                    html.H1(f"Predicted digit: {predicted_digit(model=model, image=Image.open(filename))}")
+
+                ]
+            )
+        else:
+            return image
+
 
 if __name__ == "__main__":
     app.run_server(debug=True)

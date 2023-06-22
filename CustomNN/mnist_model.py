@@ -53,6 +53,9 @@ class ImageNN(Module):
         return output
 
 
+
+
+
 def train_nn(device, model, train_loader, optimizer, loss_function, epoch):
     for batch, (X, y) in enumerate(train_loader):
 
