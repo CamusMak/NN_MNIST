@@ -7,4 +7,3 @@ numpy
 plotly
 torchvision
 torch
-base64
