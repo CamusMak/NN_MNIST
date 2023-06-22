@@ -1,7 +1,10 @@
 import torch
 from torch.nn import Module
 from torch.nn.init import kaiming_uniform_, xavier_uniform_
-
+from torchvision import transforms
+from PIL import Image, UnidentifiedImageError
+import numpy as np
+from dash import html
 from torch import nn
 
 
@@ -91,3 +94,42 @@ def test_nn(device, model, test_loader, loss_function):
 
     accuracy = correct / len(test_loader.dataset)
     print(f"\nTest Accuracy: {accuracy * 100:.2f}%\nTest loss: {test_loss}\n")
+
+
+transform = transforms.Compose([
+    transforms.Grayscale(),
+    transforms.Resize((28, 28)),
+    transforms.ToTensor()
+])
+
+
+def open_image(filename):
+    try:
+        image = np.array(Image.open(filename))
+    except UnidentifiedImageError:
+        return html.Div(
+            [
+                "Please load a valid image file!!"
+            ]
+        )
+
+    return image
+
+
+device = ('cuda' if torch.cuda.is_available() else 'cpu')
+
+
+def predicted_digit(model, image):
+    # Transform the image
+    image = transform(image).unsqueeze(0).to(device)
+
+    # Perform the prediction
+    with torch.no_grad():
+        model.eval()
+        output = model(image)
+
+    # Get the predicted digit
+    _, predicted = torch.max(output.data, 1)
+    digit = predicted.item()
+
+    return digit
