@@ -5,7 +5,7 @@ import plotly.express as px
 import pandas as pd
 from torchvision import transforms
 import torch
-from CustomNN import ImageNN, predicted_digit
+from CustomNN import ImageNN, predicted_digit,open_image
 
 # load the model
 model = ImageNN()
